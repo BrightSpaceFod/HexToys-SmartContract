@@ -1,0 +1,32 @@
+{
+  "name": "Hex-Toys",
+  "version": "1.0.0",
+  "main": "hardhat.config.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "npm run clean && hardhat compile --network pls",
+    "deploy-addnft": "hardhat run scripts/deploy-addnft.js --network pls",
+    "deploy-nftfactory": "hardhat run scripts/deploy-nftfactory.js --network pls",
+    "deploy-marketplace": "hardhat run scripts/deploy-marketplace.js --network pls",
+    "deploy-mysterybox": "hardhat run scripts/deploy-mysterybox.js --network pls",
+    "deploy-staking": "hardhat run scripts/deploy-staking.js --network pls",
+    "initialize-staking": "hardhat run scripts/initialize-staking.js --network pls",
+    "lint": "prettier-standard --format",
+    "clean": "rimraf cache artifacts"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.1.0",
+    "@openzeppelin/contracts-ethereum-package": "^3.0.0",
+    "@openzeppelin/contracts-upgradeable": "^4.1.0",
+    "dotenv": "^9.0.2"    
+  },
+  "devDependencies": {
+    "@eth-optimism/plugins": "0.0.4",
+    "@nomiclabs/hardhat-ethers": "^2.0.6",
+    "@nomiclabs/hardhat-etherscan": "^3.1.0",
+    "@openzeppelin/hardhat-upgrades": "^1.7.0",
+    "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "hardhat": "^2.2.1",
+    "prettier-standard": "16.4.1"
+  }
+}
