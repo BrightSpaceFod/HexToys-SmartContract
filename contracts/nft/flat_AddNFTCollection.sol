@@ -374,7 +374,7 @@ contract AddNFTCollection is Ownable {
 		
 	}
 
-	function setFeePercent(uint256 _fee) external onlyOwner {		
+	function setFee(uint256 _fee) external onlyOwner {		
 		fee = _fee;
     }
 
