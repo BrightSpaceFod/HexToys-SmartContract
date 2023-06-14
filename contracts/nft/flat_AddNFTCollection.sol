@@ -363,7 +363,7 @@ contract AddNFTCollection is Ownable {
     using SafeMath for uint256;
 
     address[] public collections;
-	uint256 public fee = 0.1 ether;
+	uint256 public fee = 1000 ether;
     bool public publicAdd = false;
 	
 	/** Events */
