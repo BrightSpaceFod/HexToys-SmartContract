@@ -1237,7 +1237,7 @@ interface IERC721 is IERC165 {
 */
 
 // Multiple PixelPimp Fixed MysteryBox contract
-////// SPDX-License-Identifier-FLATTEN-SUPPRESS-WARNING: MIT 
+////// SPDX-License-Identifier-FLATTEN-SUPPRESS-WARNING: MIT
 pragma solidity ^0.8.0;
 
 ////import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -1249,7 +1249,7 @@ pragma solidity ^0.8.0;
 ////import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IMysteryBoxFactory {
-	function serviceFee() external view returns (uint256);	
+    function serviceFee() external view returns (uint256);
 }
 
 contract MysteryBox is ERC1155Holder, ERC721Holder {
@@ -1263,31 +1263,38 @@ contract MysteryBox is ERC1155Holder, ERC721Holder {
     struct Card {
         uint256 cardType; // 0: ERC721, 1: ERC1155
         bytes32 key; // card key which was generated with collection and tokenId
-        address collectionId;   // collection address
-        uint256 tokenId;        // token id of collection
-        uint256 amount;  // added nft token balances
+        address collectionId; // collection address
+        uint256 tokenId; // token id of collection
+        uint256 amount; // added nft token balances
     }
 
     address public factory;
     address public owner;
 
     address public tokenAddress;
-    uint256 public price;	
-    uint256 constant public PERCENTS_DIVIDER = 1000;    
+    uint256 public price;
+    uint256 public constant PERCENTS_DIVIDER = 1000;
 
-    string public boxName; 
-    string public boxUri;    
-    
-    bool public status = true;    
+    string public boxName;
+    string public boxUri;
+
+    bool public status = true;
 
     // This is a set which contains cardKey
     mapping(bytes32 => Card) public _cards;
     EnumerableSet.Bytes32Set private _cardIndices;
-    
+
     // The amount of cards in this mysterybox.
     uint256 public cardAmount;
 
-    event AddToken(uint256 cardType, bytes32 key, address collectionId, uint256 tokenId, uint256 amount, uint256 _cardAmount);
+    event AddToken(
+        uint256 cardType,
+        bytes32 key,
+        address collectionId,
+        uint256 tokenId,
+        uint256 amount,
+        uint256 _cardAmount
+    );
     event SpinResult(address player, bytes32 key, uint256 _cardAmount);
     event RemoveCard(bytes32 key, uint256 removeAmount, uint256 _cardAmount);
     event EmergencyWithdrawAllCards(bytes32[] keys, uint256 _cardAmount);
@@ -1303,17 +1310,18 @@ contract MysteryBox is ERC1155Holder, ERC721Holder {
         factory = msg.sender;
     }
 
-    function initialize(string memory _name, 
-                string memory _uri,
-                address _tokenAddress,
-                uint256 _price,
-                address _owner
-                ) public onlyFactory {        
+    function initialize(
+        string memory _name,
+        string memory _uri,
+        address _tokenAddress,
+        uint256 _price,
+        address _owner
+    ) public onlyFactory {
         boxName = _name;
-        boxUri  = _uri;
+        boxUri = _uri;
         tokenAddress = _tokenAddress;
-        price = _price;       
-        owner = _owner;            
+        price = _price;
+        owner = _owner;
     }
 
     // ***************************
@@ -1323,10 +1331,12 @@ contract MysteryBox is ERC1155Holder, ERC721Holder {
         price = newPrice;
         emit PriceChanged(newPrice);
     }
+
     function changePaymentToken(address _newTokenAddress) external onlyOwner {
         tokenAddress = _newTokenAddress;
         emit PaymentTokenChanged(_newTokenAddress);
     }
+
     function enableThisMysteryBox() public onlyOwner {
         status = true;
         emit MysteryBoxStatus(status);
@@ -1342,10 +1352,12 @@ contract MysteryBox is ERC1155Holder, ERC721Holder {
         owner = account;
         emit OwnerShipChanged(account);
     }
+
     function removeOwnership() public onlyOwner {
         owner = address(0x0);
         emit OwnerShipChanged(owner);
     }
+
     function changeMysteryBoxName(string memory name) public onlyOwner {
         boxName = name;
         emit MysteryBoxNameChanged(name);
@@ -1356,163 +1368,279 @@ contract MysteryBox is ERC1155Holder, ERC721Holder {
         emit MysteryBoxUriChanged(_uri);
     }
 
-    
-
     // ***************************
     // For Main function ***********
     // ***************************
 
-    function addToken(uint256 cardType, address collection, uint256 tokenId, uint256 amount) public onlyOwner {        
+    function addToken(
+        uint256 cardType,
+        address collection,
+        uint256 tokenId,
+        uint256 amount
+    ) public onlyOwner {
         require((cardType == 0 || cardType == 1), "Invalid card type");
-        
-        if (cardType == 0){
-            require(IERC721(collection).ownerOf(tokenId) == msg.sender, "You are not token owner");
-            IERC721(collection).safeTransferFrom(msg.sender, address(this), tokenId);
-        }else if (cardType == 1){
-            require(IERC1155(collection).balanceOf(msg.sender, tokenId) >= amount, "You don't have enough Tokens");
-            IERC1155(collection).safeTransferFrom(msg.sender, address(this), tokenId, amount, "Add Card");
-        }        
+
+        if (cardType == 0) {
+            require(
+                IERC721(collection).ownerOf(tokenId) == msg.sender,
+                "You are not token owner"
+            );
+            IERC721(collection).safeTransferFrom(
+                msg.sender,
+                address(this),
+                tokenId
+            );
+        } else if (cardType == 1) {
+            require(
+                IERC1155(collection).balanceOf(msg.sender, tokenId) >= amount,
+                "You don't have enough Tokens"
+            );
+            IERC1155(collection).safeTransferFrom(
+                msg.sender,
+                address(this),
+                tokenId,
+                amount,
+                "Add Card"
+            );
+        }
 
         bytes32 key = itemKeyFromId(collection, tokenId);
-        if(_cards[key].amount == 0) {
+        if (_cards[key].amount == 0) {
             _cardIndices.add(key);
         }
         _cards[key].cardType = cardType;
         _cards[key].key = key;
         _cards[key].collectionId = collection;
         _cards[key].tokenId = tokenId;
-        _cards[key].amount = _cards[key].amount.add(amount);       
-        
+        _cards[key].amount = _cards[key].amount.add(amount);
+
         cardAmount = cardAmount.add(amount);
         emit AddToken(cardType, key, collection, tokenId, amount, cardAmount);
     }
 
+    function addTokenBatch(
+        uint256[] memory cardTypes,
+        address[] memory collections,
+        uint256[] memory tokenIds,
+        uint256[] memory amounts
+    ) public onlyOwner {
+        uint256 countToAdd = tokenIds.length;
+        for (uint256 i = 0; i < countToAdd; i++) {
+            if (cardTypes[i] == 0) {
+                IERC721(collections[i]).safeTransferFrom(
+                    msg.sender,
+                    address(this),
+                    tokenIds[i]
+                );
+            } else if (cardTypes[i] == 1) {
+                IERC1155(collections[i]).safeTransferFrom(
+                    msg.sender,
+                    address(this),
+                    tokenIds[i],
+                    amounts[i],
+                    "Add Card"
+                );
+            }
+
+            bytes32 key = itemKeyFromId(collections[i], tokenIds[i]);
+            if (_cards[key].amount == 0) {
+                _cardIndices.add(key);
+            }
+            _cards[key].cardType = cardTypes[i];
+            _cards[key].key = key;
+            _cards[key].collectionId = collections[i];
+            _cards[key].tokenId = tokenIds[i];
+            _cards[key].amount = _cards[key].amount.add(amounts[i]);
+
+            cardAmount = cardAmount.add(amounts[i]);
+            emit AddToken(
+                cardTypes[i],
+                key,
+                collections[i],
+                tokenIds[i],
+                amounts[i],
+                cardAmount
+            );
+        }
+    }
+
     function spin() external payable {
-        require(status, "This mysterybox is disabled.");        
+        require(status, "This mysterybox is disabled.");
         require(cardAmount > 0, "There is no card in this mysterybox anymore.");
-        
+
         uint256 fee = IMysteryBoxFactory(factory).serviceFee();
-        uint256 feeAmount = price.mul(fee).div(PERCENTS_DIVIDER);		
-		uint256 ownerAmount = price.sub(feeAmount);
+        uint256 feeAmount = price.mul(fee).div(PERCENTS_DIVIDER);
+        uint256 ownerAmount = price.sub(feeAmount);
         if (tokenAddress == address(0x0)) {
             require(msg.value >= price, "too small amount");
 
-			if(feeAmount > 0) {
+            if (feeAmount > 0) {
                 (bool result, ) = payable(factory).call{value: feeAmount}("");
-        		require(result, "Failed to send service fee to factory address");							
-			}
+                require(
+                    result,
+                    "Failed to send service fee to factory address"
+                );
+            }
             (bool result1, ) = payable(owner).call{value: ownerAmount}("");
-        	require(result1, "Failed to send coin to mysterybox owner");	
+            require(result1, "Failed to send coin to mysterybox owner");
         } else {
-            IERC20 governanceToken = IERC20(tokenAddress);	
+            IERC20 governanceToken = IERC20(tokenAddress);
 
-			require(governanceToken.transferFrom(msg.sender, address(this), price), "insufficient token balance");		
-			// transfer governance token to factory
-			if(feeAmount > 0) {
-				require(governanceToken.transfer(factory, feeAmount));		
-			}			
-			// transfer governance token to owner		
-			require(governanceToken.transfer(owner, ownerAmount));	
+            require(
+                governanceToken.transferFrom(msg.sender, address(this), price),
+                "insufficient token balance"
+            );
+            // transfer governance token to factory
+            if (feeAmount > 0) {
+                require(governanceToken.transfer(factory, feeAmount));
+            }
+            // transfer governance token to owner
+            require(governanceToken.transfer(owner, ownerAmount));
         }
-    
+
         bytes32 cardKey = getCardKeyRandmly();
 
         cardAmount = cardAmount.sub(1);
 
-        require(_cards[cardKey].amount > 0, "No enough cards of this kind in the mysterybox.");
-        if (_cards[cardKey].cardType == 0) {  
-            // ERC721              
-            IERC721(_cards[cardKey].collectionId).safeTransferFrom(address(this), msg.sender, _cards[cardKey].tokenId);
-        } else if (_cards[cardKey].cardType == 1) {   
-            // ERC1155             
-            IERC1155(_cards[cardKey].collectionId).safeTransferFrom(address(this), msg.sender, _cards[cardKey].tokenId, 1, "Your prize from Pixelpimp MysteryBox");
+        require(
+            _cards[cardKey].amount > 0,
+            "No enough cards of this kind in the mysterybox."
+        );
+        if (_cards[cardKey].cardType == 0) {
+            // ERC721
+            IERC721(_cards[cardKey].collectionId).safeTransferFrom(
+                address(this),
+                msg.sender,
+                _cards[cardKey].tokenId
+            );
+        } else if (_cards[cardKey].cardType == 1) {
+            // ERC1155
+            IERC1155(_cards[cardKey].collectionId).safeTransferFrom(
+                address(this),
+                msg.sender,
+                _cards[cardKey].tokenId,
+                1,
+                "Your prize from Pixelpimp MysteryBox"
+            );
         }
         _cards[cardKey].amount = _cards[cardKey].amount.sub(1);
-        if(_cards[cardKey].amount == 0) {
+        if (_cards[cardKey].amount == 0) {
             _cardIndices.remove(cardKey);
-        }   
+        }
         emit SpinResult(msg.sender, cardKey, cardAmount);
     }
 
     // ***************************
     // view card information ***********
     // ***************************
-     
-    function cardKeyCount() view public returns(uint256) {
+
+    function cardKeyCount() public view returns (uint256) {
         return _cardIndices.length();
     }
 
-    function cardKeyWithIndex(uint256 index) view public returns(bytes32) {
+    function cardKeyWithIndex(uint256 index) public view returns (bytes32) {
         return _cardIndices.at(index);
     }
-    
 
     // ***************************
     // emergency call information ***********
     // ***************************
 
-    function emergencyWithdrawCard(address collectionId, uint256 tokenId, uint256 amount) public onlyOwner {
+    function emergencyWithdrawCard(
+        address collectionId,
+        uint256 tokenId,
+        uint256 amount
+    ) public onlyOwner {
         bytes32 cardKey = itemKeyFromId(collectionId, tokenId);
         Card memory card = _cards[cardKey];
-        require(card.tokenId != 0 && card.collectionId != address(0x0), "Invalid Collection id and token id");
+        require(
+            card.tokenId != 0 && card.collectionId != address(0x0),
+            "Invalid Collection id and token id"
+        );
         require(card.amount >= amount, "Insufficient balance");
         require(amount > 0, "Insufficient amount");
         if (card.cardType == 0) {
             // withdraw single card
-            IERC721(card.collectionId).safeTransferFrom(address(this), msg.sender, card.tokenId);                    
-        } else if (card.cardType == 1){
+            IERC721(card.collectionId).safeTransferFrom(
+                address(this),
+                msg.sender,
+                card.tokenId
+            );
+        } else if (card.cardType == 1) {
             // withdraw multiple card
-            IERC1155(card.collectionId).safeTransferFrom(address(this), msg.sender, card.tokenId, amount, "Reset MysteryBox");
-        }  
+            IERC1155(card.collectionId).safeTransferFrom(
+                address(this),
+                msg.sender,
+                card.tokenId,
+                amount,
+                "Reset MysteryBox"
+            );
+        }
         cardAmount = cardAmount.sub(amount);
         _cards[cardKey].amount = _cards[cardKey].amount.sub(amount);
-        if(_cards[cardKey].amount == 0) {
+        if (_cards[cardKey].amount == 0) {
             _cardIndices.remove(cardKey);
-        }   
-        emit RemoveCard(cardKey, amount, cardAmount);      
+        }
+        emit RemoveCard(cardKey, amount, cardAmount);
     }
 
     function emergencyWithdrawAllCards() public onlyOwner {
         bytes32[] memory keys = new bytes32[](cardKeyCount());
-        for(uint256 i = 0 ; i < cardKeyCount(); i++) {
+        for (uint256 i = 0; i < cardKeyCount(); i++) {
             bytes32 key = cardKeyWithIndex(i);
             keys[i] = key;
-            if(_cards[key].amount > 0) {
+            if (_cards[key].amount > 0) {
                 Card memory card = _cards[key];
                 if (card.cardType == 0) {
                     // withdraw single card
-                    IERC721(card.collectionId).safeTransferFrom(address(this), msg.sender, card.tokenId);                    
-                } else if (card.cardType == 1){
+                    IERC721(card.collectionId).safeTransferFrom(
+                        address(this),
+                        msg.sender,
+                        card.tokenId
+                    );
+                } else if (card.cardType == 1) {
                     // withdraw multiple card
-                    IERC1155(card.collectionId).safeTransferFrom(address(this), msg.sender, card.tokenId, card.amount, "Reset MysteryBox");
-                }   
-                cardAmount = cardAmount.sub(_cards[key].amount);       
+                    IERC1155(card.collectionId).safeTransferFrom(
+                        address(this),
+                        msg.sender,
+                        card.tokenId,
+                        card.amount,
+                        "Reset MysteryBox"
+                    );
+                }
+                cardAmount = cardAmount.sub(_cards[key].amount);
                 _cards[key].amount = 0;
-                _cardIndices.remove(key);               
+                _cardIndices.remove(key);
             }
-        }        
-        emit EmergencyWithdrawAllCards(keys,cardAmount);
+        }
+        emit EmergencyWithdrawAllCards(keys, cardAmount);
     }
-
 
     // ***************************
     // general function ***********
     // ***************************
-    function getCardKeyRandmly() view private returns(bytes32) {
-        uint256 randomNumber =  uint256(keccak256(abi.encode(block.timestamp, block.difficulty, block.number))).mod(cardAmount);
+    function getCardKeyRandmly() private view returns (bytes32) {
+        uint256 randomNumber = uint256(
+            keccak256(
+                abi.encode(block.timestamp, block.difficulty, block.number)
+            )
+        ).mod(cardAmount);
         uint256 amountSum = 0;
         bytes32 resultKey = cardKeyWithIndex(0);
-        for(uint i = 0; i < cardKeyCount(); i++) {
+        for (uint i = 0; i < cardKeyCount(); i++) {
             amountSum = amountSum.add(_cards[cardKeyWithIndex(i)].amount);
-            if (amountSum > randomNumber){
+            if (amountSum > randomNumber) {
                 resultKey = cardKeyWithIndex(i);
                 break;
             }
-        }    
+        }
         return resultKey;
     }
-    
-    function itemKeyFromId(address _collection, uint256 _token_id) public pure returns (bytes32) {
+
+    function itemKeyFromId(
+        address _collection,
+        uint256 _token_id
+    ) public pure returns (bytes32) {
         return keccak256(abi.encode(_collection, _token_id));
     }
 
@@ -1522,18 +1650,20 @@ contract MysteryBox is ERC1155Holder, ERC721Holder {
     }
 
     modifier onlyOwner() {
-        require(address(msg.sender) == owner,  "Only for owner.");
+        require(address(msg.sender) == owner, "Only for owner.");
         _;
     }
-    
+
     function withdrawBNB() public onlyOwner {
-		uint balance = address(this).balance;
-		require(balance > 0, "insufficient balance");
+        uint balance = address(this).balance;
+        require(balance > 0, "insufficient balance");
         (bool result, ) = payable(msg.sender).call{value: balance}("");
-        require(result, "Failed to withdraw");		
-	}
+        require(result, "Failed to withdraw");
+    }
+
     /**
      * @dev To receive ETH
      */
     receive() external payable {}
 }
+
