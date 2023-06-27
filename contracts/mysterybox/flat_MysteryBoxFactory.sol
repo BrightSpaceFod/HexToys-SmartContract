@@ -1823,8 +1823,8 @@ contract MysteryBoxFactory is Ownable {
     event FeeUpdated(uint256 old_fee, uint256 new_fee);
 
     constructor () {		
-		creatingFee = 0 ether;
-		serviceFee = 0;		
+		creatingFee = 100000 ether;
+		serviceFee = 21;		
 	}
 
     function createMysteryBox(string memory _name, 
