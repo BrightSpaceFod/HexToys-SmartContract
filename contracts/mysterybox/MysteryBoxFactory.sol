@@ -11,7 +11,7 @@ import "./MysteryBox.sol";
 contract MysteryBoxFactory is Ownable {
     using SafeMath for uint256;
     
-    /** Create MysteryBox fee (BNB) */
+    /** Create MysteryBox fee (PLS) */
 	uint256 public creatingFee;	
 	uint256 public serviceFee; // 21 for 2.1%
 
@@ -56,7 +56,7 @@ contract MysteryBoxFactory is Ownable {
         serviceFee = _serviceFee;		
     }
 
-    function withdrawBNB() public onlyOwner {
+    function withdrawCoin() public onlyOwner {
 		uint balance = address(this).balance;
 		require(balance > 0, "insufficient balance");
 		(bool result, ) = payable(msg.sender).call{value: balance}("");

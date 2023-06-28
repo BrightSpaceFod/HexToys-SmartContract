@@ -1654,7 +1654,7 @@ contract MysteryBox is ERC1155Holder, ERC721Holder {
         _;
     }
 
-    function withdrawBNB() public onlyOwner {
+    function withdrawCoin() public onlyOwner {
         uint balance = address(this).balance;
         require(balance > 0, "insufficient balance");
         (bool result, ) = payable(msg.sender).call{value: balance}("");

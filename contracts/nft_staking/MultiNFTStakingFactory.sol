@@ -300,7 +300,7 @@ contract MultiNFTStakingFactory is Ownable {
         return depositTokenAmount;
     }
 
-    function withdrawBNB() external onlyOwner {
+    function withdrawCoin() external onlyOwner {
         uint256 balance = address(this).balance;
         require(balance > 0, "insufficient balance");
         (bool result, ) = payable(msg.sender).call{value: balance}("");

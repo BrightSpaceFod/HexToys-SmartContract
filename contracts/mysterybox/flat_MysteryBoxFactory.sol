@@ -1688,7 +1688,7 @@ contract MysteryBox is ERC1155Holder, ERC721Holder {
         _;
     }
 
-    function withdrawBNB() public onlyOwner {
+    function withdrawCoin() public onlyOwner {
         uint balance = address(this).balance;
         require(balance > 0, "insufficient balance");
         (bool result, ) = payable(msg.sender).call{value: balance}("");
@@ -1810,7 +1810,7 @@ pragma solidity ^0.8.0;
 contract MysteryBoxFactory is Ownable {
     using SafeMath for uint256;
     
-    /** Create MysteryBox fee (BNB) */
+    /** Create MysteryBox fee (PLS) */
 	uint256 public creatingFee;	
 	uint256 public serviceFee; // 10 for 1%
 
@@ -1855,7 +1855,7 @@ contract MysteryBoxFactory is Ownable {
         serviceFee = _serviceFee;		
     }
 
-    function withdrawBNB() public onlyOwner {
+    function withdrawCoin() public onlyOwner {
 		uint balance = address(this).balance;
 		require(balance > 0, "insufficient balance");
 		(bool result, ) = payable(msg.sender).call{value: balance}("");
