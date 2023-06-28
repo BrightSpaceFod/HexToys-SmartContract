@@ -11,23 +11,23 @@ async function main() {
   console.log('signer:', await signer.getAddress())
 
   // Subscribe Contract
-  // const Subscribe = await ethers.getContractFactory('Subscription', { signer: signer })
+  const Subscribe = await ethers.getContractFactory('HexToysSubscription', { signer: signer })
 
-  // const _contract = await Subscribe.deploy();
-  // await _contract.deployed();
-  // await sleep(60);
-  // console.log("Subscribe Deployed Address : ", marketContract.address);
+  const _contract = await Subscribe.deploy();
+  await _contract.deployed();
+  await sleep(60);
+  console.log("Subscribe Deployed Address : ", _contract.address);
 
-  // // Verify Template
-  // try {
-  //   await hre.run('verify:verify', {
-  //     address: _contract.address,
-  //     constructorArguments: []
-  //   })
-  //   console.log('Subscribe Contract verified')
-  // } catch (error) {
-  //   console.log('Subscribe verification failed : ', error)
-  // }
+  // Verify Template
+  try {
+    await hre.run('verify:verify', {
+      address: _contract.address,
+      constructorArguments: []
+    })
+    console.log('Subscribe Contract verified')
+  } catch (error) {
+    console.log('Subscribe verification failed : ', error)
+  }
 
 }
 

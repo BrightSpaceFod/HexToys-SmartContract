@@ -11,7 +11,7 @@ async function main() {
   const signer = (await ethers.getSigners())[0]
   console.log('signer:', await signer.getAddress())
 
-  const contractAddress = '';
+  const contractAddress = '0x32c4a6a9b1f80ca4411dFCE07e160682591c52D2';
 
   // Verify Contract
   try {
