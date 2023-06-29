@@ -1,4 +1,4 @@
-// SingleNFT Auction Contract 
+// HexToys Auction Contract 
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.0;
@@ -6,22 +6,24 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "../signature/Signature.sol";
 
-interface ISingleNFT {
+interface IHexToysSingleNFT {
 	function safeTransferFrom(address from, address to, uint256 tokenId) external;   
 }
 
-contract SingleAuction is Ownable, ERC721Holder {
+contract HexToysSingleAuction is OwnableUpgradeable, ERC721HolderUpgradeable, Signature {
     using SafeMath for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
 
     uint256 constant public PERCENTS_DIVIDER = 1000;
     uint256 constant public MIN_BID_INCREMENT_PERCENT = 10; // 1%
-	uint256 public swapFee = 21;	//2.1%
-	address public feeAddress;    	
+	uint256 public swapFee;	
+	address public feeAddress; 
+    address public signerAddress;   	
     
     // AuctionBid struct to hold bidder and amount
     struct AuctionBid {
@@ -60,12 +62,24 @@ contract SingleAuction is Ownable, ERC721Holder {
     event AuctionCanceled(Auction auction);
 
     // AuctionFinalized is fired when an auction is finalized
-    event AuctionFinalized(address buyer, uint256 price, Auction auction);
-
-    constructor (address _feeAddress) {		
-		feeAddress = _feeAddress;
-	}   
+    event AuctionFinalized(address buyer, uint256 price, Auction auction);   
     
+    function initialize(
+        address _feeAddress,
+        address _signerAddress
+    ) public initializer {
+        __Ownable_init();
+        require(_feeAddress != address(0), "Invalid commonOwner");
+        feeAddress = _feeAddress;
+        signerAddress = _signerAddress;
+        swapFee = 21; //2.1%
+    }	
+
+    function setSignerAddress(address _signerAddress) external onlyOwner {
+		require(_signerAddress != address(0x0), "invalid address");		
+        signerAddress = _signerAddress;		
+    }
+
     function setFeeAddress(address _feeAddress) external onlyOwner {
         require(_feeAddress != address(0x0), "invalid address");		
         feeAddress = _feeAddress;		
@@ -87,7 +101,7 @@ contract SingleAuction is Ownable, ERC721Holder {
     {   
         require(block.timestamp < _endTime, "end timestamp have to be bigger than current time");
         
-        ISingleNFT nft = ISingleNFT(_collectionId); 
+        IHexToysSingleNFT nft = IHexToysSingleNFT(_collectionId); 
 
         uint256 auctionId = auctions.length;
         Auction memory newAuction;
@@ -114,14 +128,25 @@ contract SingleAuction is Ownable, ERC721Holder {
      * @dev On success Deed is transfered to bidder and auction owner gets the amount
      * @param _auctionId uint256 ID of the created auction
      */
-    function finalizeAuction(uint256 _auctionId) public {
+    function finalizeAuction(uint256 _auctionId, bytes calldata _signature, uint256 _royalty, address _royaltyReceiver) public {
         Auction memory myAuction = auctions[_auctionId];
         uint256 bidsLength = auctionBids[_auctionId].length;
         require(msg.sender == myAuction.owner || msg.sender == owner(), "only auction owner can finalize");
-        
+        confirmSignature(
+            address(this), 
+            msg.sender, 
+			myAuction.collectionId,
+			myAuction.tokenId,
+			_royalty,
+			_royaltyReceiver,			
+            "finalizeAuction", 
+            _signature, 
+            signerAddress
+        );
+
         // if there are no bids cancel
         if(bidsLength == 0) {
-            ISingleNFT(myAuction.collectionId).safeTransferFrom(address(this), myAuction.owner, myAuction.tokenId);
+            IHexToysSingleNFT(myAuction.collectionId).safeTransferFrom(address(this), myAuction.owner, myAuction.tokenId);
             auctions[_auctionId].active = false;           
             emit AuctionCanceled(auctions[_auctionId]);
         }else{
@@ -130,7 +155,8 @@ contract SingleAuction is Ownable, ERC721Holder {
             
             // % commission cut
             uint256 _feeValue = lastBid.bidPrice.mul(swapFee).div(PERCENTS_DIVIDER);            
-            uint256 _sellerValue = lastBid.bidPrice.sub(_feeValue);
+            uint256 _royaltyValue = lastBid.bidPrice.mul(_royalty).div(PERCENTS_DIVIDER);            
+            uint256 _sellerValue = lastBid.bidPrice.sub(_feeValue).sub(_royaltyValue);
             
             if (myAuction.tokenAdr == address(0x0)) {
                 
@@ -141,17 +167,22 @@ contract SingleAuction is Ownable, ERC721Holder {
                     (bool result1, ) = payable(feeAddress).call{value: _feeValue}("");
         		    require(result1, "Failed to send fee to feeAddress");      
                 }
-                     
+                if(_royaltyValue > 0){
+                    (bool result1, ) = payable(_royaltyReceiver).call{value: _royaltyValue}("");
+        		    require(result1, "Failed to send royalty");      
+                }                     
                 
             } else {
                 IERC20 governanceToken = IERC20(myAuction.tokenAdr);
 
                 require(governanceToken.transfer(myAuction.owner, _sellerValue), "transfer to seller failed");
                 if(_feeValue > 0) require(governanceToken.transfer(feeAddress, _feeValue));               
+                if(_royaltyValue > 0) require(governanceToken.transfer(_royaltyReceiver, _royaltyValue));               
+            
             }
             
             // approve and transfer from this contract to the bid winner 
-            ISingleNFT(myAuction.collectionId).safeTransferFrom(address(this), lastBid.from, myAuction.tokenId);		
+            IHexToysSingleNFT(myAuction.collectionId).safeTransferFrom(address(this), lastBid.from, myAuction.tokenId);		
             auctions[_auctionId].active = false;
 
             emit AuctionFinalized(lastBid.from,lastBid.bidPrice, myAuction);

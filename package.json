@@ -8,10 +8,10 @@
     "deploy-addnft": "hardhat run scripts/deploy-addnft.js --network pls",
     "deploy-nftfactory": "hardhat run scripts/deploy-nftfactory.js --network pls",
     "deploy-marketplace": "hardhat run scripts/deploy-marketplace.js --network pls",
-    "deploy-mysterybox": "hardhat run scripts/deploy-mysterybox.js --network pls",
+    "deploy-lootbox": "hardhat run scripts/deploy-lootbox.js --network pls",
     "deploy-staking": "hardhat run scripts/deploy-staking.js --network pls",
-    "initialize-staking": "hardhat run scripts/initialize-staking.js --network pls",
     "deploy-subscribe": "hardhat run scripts/deploy-subscribe.js --network pls",
+    "initialize-staking": "hardhat run scripts/initialize-staking.js --network pls",
     "verify-contract": "hardhat run scripts/verify-contract.js --network pls",
     "lint": "prettier-standard --format",
     "clean": "rimraf cache artifacts"

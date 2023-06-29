@@ -1,4 +1,4 @@
-// Multiple PixelPimp Fixed MysteryBox contract
+// Multiple Fixed HexToysLootBox contract
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
@@ -10,11 +10,11 @@ import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-interface IMysteryBoxFactory {
+interface IHexToysMysteryBoxFactory {
     function serviceFee() external view returns (uint256);
 }
 
-contract MysteryBox is ERC1155Holder, ERC721Holder {
+contract HexToysLootBox is ERC1155Holder, ERC721Holder {
     using SafeMath for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.Bytes32Set;
@@ -63,10 +63,10 @@ contract MysteryBox is ERC1155Holder, ERC721Holder {
 
     event PriceChanged(uint256 newPrice);
     event PaymentTokenChanged(address newTokenAddress);
-    event MysteryBoxStatus(bool boxStatus);
+    event HexToysMysteryBoxStatus(bool boxStatus);
     event OwnerShipChanged(address newAccount);
-    event MysteryBoxNameChanged(string newName);
-    event MysteryBoxUriChanged(string newUri);
+    event HexToysMysteryBoxNameChanged(string newName);
+    event HexToysMysteryBoxUriChanged(string newUri);
 
     constructor() {
         factory = msg.sender;
@@ -99,14 +99,14 @@ contract MysteryBox is ERC1155Holder, ERC721Holder {
         emit PaymentTokenChanged(_newTokenAddress);
     }
 
-    function enableThisMysteryBox() public onlyOwner {
+    function enableThisHexToysMysteryBox() public onlyOwner {
         status = true;
-        emit MysteryBoxStatus(status);
+        emit HexToysMysteryBoxStatus(status);
     }
 
-    function disableThisMysteryBox() public onlyOwner {
+    function disableThisHexToysMysteryBox() public onlyOwner {
         status = false;
-        emit MysteryBoxStatus(status);
+        emit HexToysMysteryBoxStatus(status);
     }
 
     function transferOwner(address account) public onlyOwner {
@@ -120,14 +120,14 @@ contract MysteryBox is ERC1155Holder, ERC721Holder {
         emit OwnerShipChanged(owner);
     }
 
-    function changeMysteryBoxName(string memory name) public onlyOwner {
+    function changeHexToysMysteryBoxName(string memory name) public onlyOwner {
         boxName = name;
-        emit MysteryBoxNameChanged(name);
+        emit HexToysMysteryBoxNameChanged(name);
     }
 
-    function changeMysteryBoxUri(string memory _uri) public onlyOwner {
+    function changeHexToysMysteryBoxUri(string memory _uri) public onlyOwner {
         boxUri = _uri;
-        emit MysteryBoxUriChanged(_uri);
+        emit HexToysMysteryBoxUriChanged(_uri);
     }
 
     // ***************************
@@ -230,7 +230,7 @@ contract MysteryBox is ERC1155Holder, ERC721Holder {
         require(status, "This mysterybox is disabled.");
         require(cardAmount > 0, "There is no card in this mysterybox anymore.");
 
-        uint256 fee = IMysteryBoxFactory(factory).serviceFee();
+        uint256 fee = IHexToysMysteryBoxFactory(factory).serviceFee();
         uint256 feeAmount = price.mul(fee).div(PERCENTS_DIVIDER);
         uint256 ownerAmount = price.sub(feeAmount);
         if (tokenAddress == address(0x0)) {
@@ -282,7 +282,7 @@ contract MysteryBox is ERC1155Holder, ERC721Holder {
                 msg.sender,
                 _cards[cardKey].tokenId,
                 1,
-                "Your prize from Pixelpimp MysteryBox"
+                "Your prize from Pixelpimp HexToysLootBox"
             );
         }
         _cards[cardKey].amount = _cards[cardKey].amount.sub(1);
@@ -335,7 +335,7 @@ contract MysteryBox is ERC1155Holder, ERC721Holder {
                 msg.sender,
                 card.tokenId,
                 amount,
-                "Reset MysteryBox"
+                "Reset HexToysLootBox"
             );
         }
         cardAmount = cardAmount.sub(amount);
@@ -367,7 +367,7 @@ contract MysteryBox is ERC1155Holder, ERC721Holder {
                         msg.sender,
                         card.tokenId,
                         card.amount,
-                        "Reset MysteryBox"
+                        "Reset HexToysLootBox"
                     );
                 }
                 cardAmount = cardAmount.sub(_cards[key].amount);

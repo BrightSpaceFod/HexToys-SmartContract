@@ -5,9 +5,9 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-import "./NFTStaking.sol";
+import "./HexToysNFTStaking.sol";
 
-contract SingleNFTStaking is NFTStaking, IERC721Receiver {
+contract HexToysSingleNFTStaking is HexToysNFTStaking, IERC721Receiver {
     using SafeMath for uint256;
     using EnumerableSet for EnumerableSet.UintSet;    
 
