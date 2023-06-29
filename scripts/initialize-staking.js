@@ -13,17 +13,17 @@ async function main() {
     {
       name: 'Basic',
       period: 2592000, // 1 months
-      price: '10'
+      price: '2000000'
     },
     {
       name: 'Standard',
       period: 7776000, // 3 months
-      price: '25'
+      price: '5000000'
     },
     {
       name: 'Premium',
       period: 15552000, // 6 months
-      price: '40'
+      price: '10000000'
     }
   ];
   const aprs = [
