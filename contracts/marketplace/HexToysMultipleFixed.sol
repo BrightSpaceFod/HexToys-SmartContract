@@ -22,6 +22,8 @@ interface IMultipleNFT {
         address account,
         uint256 id
     ) external view returns (uint256);
+
+    function isApprovedForAll(address account, address operator) external view returns (bool);
 }
 
 contract HexToysMultipleFixed is
@@ -102,19 +104,20 @@ contract HexToysMultipleFixed is
     ) public {
         require(_price > 0, "invalid price");
         require(_amount > 0, "invalid amount");
+
         IMultipleNFT nft = IMultipleNFT(_collection);
+        require(
+            nft.isApprovedForAll(
+                _msgSender(),
+                address(this)
+            ),
+            "Not approve nft to staker address"
+        );
+
         uint256 nft_token_balance = nft.balanceOf(msg.sender, _tokenId);
         require(
             nft_token_balance >= _amount,
             "invalid amount : amount have to be smaller than NFT balance"
-        );
-
-        nft.safeTransferFrom(
-            msg.sender,
-            address(this),
-            _tokenId,
-            _amount,
-            "List"
         );
 
         currentPairId = currentPairId.add(2);
@@ -137,13 +140,6 @@ contract HexToysMultipleFixed is
             "only owner can delist"
         );
 
-        IMultipleNFT(pairs[_id].collection).safeTransferFrom(
-            address(this),
-            pairs[_id].owner,
-            pairs[_id].tokenId,
-            pairs[_id].balance,
-            "delist Marketplace"
-        );
         pairs[_id].balance = 0;
         pairs[_id].bValid = false;
 
@@ -159,6 +155,13 @@ contract HexToysMultipleFixed is
     ) external payable {
         require(pairs[_id].bValid, "invalid Pair id");
         require(pairs[_id].balance >= _amount, "insufficient NFT balance");
+        
+        uint256 nft_token_balance = IMultipleNFT(pairs[_id].collection).balanceOf(pairs[_id].owner, pairs[_id].tokenId);
+        require(
+            nft_token_balance >= _amount,
+            "invalid amount : amount have to be smaller than NFT balance"
+        );
+
         confirmSignature(
             address(this),
             msg.sender,
@@ -230,14 +233,19 @@ contract HexToysMultipleFixed is
 
         // transfer NFT token to buyer
         IMultipleNFT(pairs[_id].collection).safeTransferFrom(
-            address(this),
+            item.owner,
             msg.sender,
             item.tokenId,
             _amount,
             "buy from Marketplace"
         );
+        if (pairs[_id].balance > nft_token_balance) {
+            pairs[_id].balance = nft_token_balance.sub(_amount);
+        } else {
+            pairs[_id].balance = pairs[_id].balance.sub(_amount);
+        }
 
-        pairs[_id].balance = pairs[_id].balance.sub(_amount);
+        
         if (pairs[_id].balance == 0) {
             pairs[_id].bValid = false;
         }

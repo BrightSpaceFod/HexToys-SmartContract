@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 /**
  * @title Subscription based smart contract
@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * @author HexToys Inc.
  */
 
-contract HexToysSubscription is Ownable {
+contract HexToysSubscription is OwnableUpgradeable {
 
     /// @dev Variables to manage the fee for each type of payment
     uint256 public coinFee; // Fee for Coin payments
@@ -48,8 +48,10 @@ contract HexToysSubscription is Ownable {
     error FailedWithdrawn();
 
 
-    /// @dev We transfer the ownership to a given owner
-    constructor() {
+    /// @dev We transfer the ownership to a given owner    
+
+    function initialize() public initializer {
+        __Ownable_init();
         feeCollector = _msgSender();
         coinFee = 100000 ether;
     }

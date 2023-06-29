@@ -5,6 +5,7 @@ const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay * 10
 
 async function main() {
   const ethers = hre.ethers;
+  const upgrades = hre.upgrades;
   console.log('network:', await ethers.provider.getNetwork());
 
   const signer = (await ethers.getSigners())[0];
@@ -13,18 +14,20 @@ async function main() {
   /**
    *  Deploy and Verify HexToysNFTFactory
    */
-   {   
-    const contractFactory = await ethers.getContractFactory('HexToysNFTFactory');
-    const contract = await contractFactory.deploy();
-    await contract.deployed();
+  {   
+    const HexToysNFTFactory = await ethers.getContractFactory('HexToysNFTFactory', {
+      signer: (await ethers.getSigners())[0]
+    });
+    const nftFactory = await upgrades.deployProxy(HexToysNFTFactory, [], { initializer: 'initialize' });
+    await nftFactory.deployed()
 
-    console.log('HexToysNFTFactory Deployed: ', contract.address);
-
+    console.log('HexToysNFTFactory proxy deployed: ', nftFactory.address)
+    
     await sleep(60);
     // Verify HexToysNFTFactory
     try {
       await hre.run('verify:verify', {
-        address: contract.address,
+        address: nftFactory.address,
         constructorArguments: []
       })
       console.log('HexToysNFTFactory verified')

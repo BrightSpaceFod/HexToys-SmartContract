@@ -11,7 +11,8 @@ import "../signature/Signature.sol";
 
 interface IHexToysSingleNFT {
 	function safeTransferFrom(address from, address to, uint256 tokenId) external;
-    function ownerOf(uint256 tokenId) external view returns (address);   
+    function ownerOf(uint256 tokenId) external view returns (address); 
+	function isApprovedForAll(address owner, address operator) external view returns (bool);  
 }
 
 contract HexToysSingleFixed is OwnableUpgradeable, ERC721HolderUpgradeable, Signature {
@@ -71,9 +72,14 @@ contract HexToysSingleFixed is OwnableUpgradeable, ERC721HolderUpgradeable, Sign
     }	
 
     function singleList(address _collection, uint256 _tokenId, address _tokenAdr, uint256 _price) OnlyItemOwner(_collection,_tokenId) public {
-		require(_price > 0, "invalid price");	
-		IHexToysSingleNFT nft = IHexToysSingleNFT(_collection);        
-        nft.safeTransferFrom(msg.sender, address(this), _tokenId);
+		require(_price > 0, "invalid price");
+		require(
+            IHexToysSingleNFT(_collection).isApprovedForAll(
+                _msgSender(),
+                address(this)
+            ),
+            "Not approve nft to singlefixed"
+        );
 
 		currentPairId = currentPairId.add(2);
 		pairs[currentPairId].pairId = currentPairId;
@@ -90,7 +96,6 @@ contract HexToysSingleFixed is OwnableUpgradeable, ERC721HolderUpgradeable, Sign
     function singleDelist(uint256 _id) external {        
         require(pairs[_id].bValid, "not exist");
         require(msg.sender == pairs[_id].owner || msg.sender == owner(), "Error, you are not the owner");        
-        IHexToysSingleNFT(pairs[_id].collection).safeTransferFrom(address(this), pairs[_id].owner, pairs[_id].tokenId);        
         pairs[_id].bValid = false;
         emit SingleItemDelisted(pairs[_id].collection, pairs[_id].tokenId, _id);        
     }
@@ -154,7 +159,7 @@ contract HexToysSingleFixed is OwnableUpgradeable, ERC721HolderUpgradeable, Sign
         }
 		
 		// transfer NFT token to buyer
-		IHexToysSingleNFT(pairs[_id].collection).safeTransferFrom(address(this), msg.sender, pair.tokenId);
+		IHexToysSingleNFT(pairs[_id].collection).safeTransferFrom(pair.owner, msg.sender, pair.tokenId);
 		
 		pairs[_id].bValid = false;		
 
