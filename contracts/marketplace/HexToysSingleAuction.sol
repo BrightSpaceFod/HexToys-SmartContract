@@ -11,25 +11,12 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../signature/Signature.sol";
 
 interface IHexToysSingleNFT {
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) external;
-
+    function safeTransferFrom(address from, address to, uint256 tokenId) external;
     function ownerOf(uint256 tokenId) external view returns (address);
-
-    function isApprovedForAll(
-        address owner,
-        address operator
-    ) external view returns (bool);
+    function isApprovedForAll( address owner, address operator) external view returns (bool);
 }
 
-contract HexToysSingleAuction is
-    OwnableUpgradeable,
-    ERC721HolderUpgradeable,
-    Signature
-{
+contract HexToysSingleAuction is OwnableUpgradeable, ERC721HolderUpgradeable, Signature {
     using SafeMath for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -67,12 +54,7 @@ contract HexToysSingleAuction is
     // Mapping from owner to a list of owned auctions
     mapping(address => uint256[]) public ownedAuctions;
 
-    event AuctionBidSuccess(
-        address _from,
-        Auction auction,
-        uint256 price,
-        uint256 _bidIndex
-    );
+    event AuctionBidSuccess( address _from, Auction auction, uint256 price, uint256 _bidIndex );
 
     // AuctionCreated is fired when an auction is created
     event AuctionCreated(Auction auction);
@@ -83,10 +65,7 @@ contract HexToysSingleAuction is
     // AuctionFinalized is fired when an auction is finalized
     event AuctionFinalized(address buyer, uint256 price, Auction auction);
 
-    function initialize(
-        address _feeAddress,
-        address _signerAddress
-    ) public initializer {
+    function initialize( address _feeAddress, address _signerAddress ) public initializer {
         __Ownable_init();
         require(_feeAddress != address(0), "Invalid commonOwner");
         feeAddress = _feeAddress;
@@ -110,29 +89,12 @@ contract HexToysSingleAuction is
     }
 
     /*
-     * @dev Creates an auction with the given informatin
-     * @param _tokenRepositoryAddress address of the TokenRepository contract
-     * @param _tokenId uint256 of the deed registered in DeedRepository
-     * @param _startPrice uint256 starting price of the auction
-     * @return bool whether the auction is created
+     * @dev Creates an auction
      */
-    function createAuction(
-        address _collectionId,
-        uint256 _tokenId,
-        address _tokenAdr,
-        uint256 _startPrice,
-        uint256 _startTime,
-        uint256 _endTime
-    ) public onlyTokenOwner(_collectionId, _tokenId) {
+    function createAuction( address _collectionId, uint256 _tokenId, address _tokenAdr, uint256 _startPrice, uint256 _startTime, uint256 _endTime ) public onlyTokenOwner(_collectionId, _tokenId) {
+        require( block.timestamp < _endTime, "end timestamp have to be bigger than current time" );
         require(
-            block.timestamp < _endTime,
-            "end timestamp have to be bigger than current time"
-        );
-        require(
-            IHexToysSingleNFT(_collectionId).isApprovedForAll(
-                _msgSender(),
-                address(this)
-            ),
+            IHexToysSingleNFT(_collectionId).isApprovedForAll( _msgSender(), address(this) ),
             "Not approve nft to singlefixed"
         );
 
@@ -156,30 +118,19 @@ contract HexToysSingleAuction is
 
     /**
      * @dev Finalized an ended auction
-     * @dev The auction should be ended, and there should be at least one bid
-     * @dev On success Deed is transfered to bidder and auction owner gets the amount
-     * @param _auctionId uint256 ID of the created auction
-     */
-    function finalizeAuction(
-        uint256 _auctionId,
-        bytes calldata _signature,
-        uint256 _royalty,
-        address _royaltyReceiver
-    ) public {
+    */
+    function finalizeAuction( uint256 _auctionId, bytes calldata _signature, uint256[] memory _royaltyArray, address[] memory _receiverArray ) public {
         Auction memory myAuction = auctions[_auctionId];
         uint256 bidsLength = auctionBids[_auctionId].length;
-        require(
-            msg.sender == myAuction.owner || msg.sender == owner(),
-            "only auction owner can finalize"
-        );
+        require( msg.sender == myAuction.owner || msg.sender == owner(), "only auction owner can finalize" );
 
         confirmSignature(
             address(this),
             msg.sender,
             myAuction.collectionId,
             myAuction.tokenId,
-            _royalty,
-            _royaltyReceiver,
+            _royaltyArray,
+            _receiverArray,
             "finalizeAuction",
             _signature,
             signerAddress
@@ -187,11 +138,7 @@ contract HexToysSingleAuction is
 
         // if there are no bids cancel
         if (bidsLength == 0) {
-            IHexToysSingleNFT(myAuction.collectionId).safeTransferFrom(
-                address(this),
-                myAuction.owner,
-                myAuction.tokenId
-            );
+            IHexToysSingleNFT(myAuction.collectionId).safeTransferFrom( address(this), myAuction.owner, myAuction.tokenId);
             auctions[_auctionId].active = false;
             emit AuctionCanceled(auctions[_auctionId]);
         } else {
@@ -199,48 +146,32 @@ contract HexToysSingleAuction is
             AuctionBid memory lastBid = auctionBids[_auctionId][bidsLength - 1];
 
             // % commission cut
-            uint256 _feeValue = lastBid.bidPrice.mul(swapFee).div(
-                PERCENTS_DIVIDER
-            );
-            uint256 _royaltyValue = lastBid.bidPrice.mul(_royalty).div(
-                PERCENTS_DIVIDER
-            );
-            uint256 _sellerValue = lastBid.bidPrice.sub(_feeValue).sub(
-                _royaltyValue
-            );
+            uint256 _feeValue = lastBid.bidPrice.mul(swapFee).div( PERCENTS_DIVIDER );
+            uint256 _sellerValue = lastBid.bidPrice.sub(_feeValue);            
 
-            // transfer token
+            // transfer token from user to contract
             IERC20 governanceToken = IERC20(myAuction.tokenAdr);
-            require(
-                    governanceToken.transferFrom(
-                        lastBid.from,
-                        address(this),
-                        lastBid.bidPrice
-                    ),
-                    "insufficient token balance"
-                );
-            require(
-                governanceToken.transfer(myAuction.owner, _sellerValue),
-                "transfer token to auction owner failed"
-            );
+            require(governanceToken.transferFrom(lastBid.from, address(this), lastBid.bidPrice), "insufficient token balance");
+            
+            // transfer service fee
             if (_feeValue > 0)
                 require(governanceToken.transfer(feeAddress, _feeValue));
-            if (_royaltyValue > 0)
-                require(
-                    governanceToken.transfer(
-                        _royaltyReceiver,
-                        _royaltyValue
-                    )
-                );
 
+            // transfer royalties
+            uint256 royaltyCount = _royaltyArray.length;
+            for (uint256 i = 0; i < royaltyCount; i++) {
+                uint256 royaltyAmount = lastBid.bidPrice.mul(_royaltyArray[i]).div(PERCENTS_DIVIDER);                  
+                if (royaltyAmount > 0) {
+                    governanceToken.transfer(_receiverArray[i], royaltyAmount);
+                    _sellerValue = _sellerValue.sub(royaltyAmount);
+                }
+            }            
 
+            // transfer token to auction owner
+            governanceToken.transfer(myAuction.owner, _sellerValue);
 
             // approve and transfer from this contract to the bid winner
-            IHexToysSingleNFT(myAuction.collectionId).safeTransferFrom(
-                myAuction.owner,
-                lastBid.from,
-                myAuction.tokenId
-            );
+            IHexToysSingleNFT(myAuction.collectionId).safeTransferFrom( myAuction.owner, lastBid.from, myAuction.tokenId );
             auctions[_auctionId].active = false;
 
             emit AuctionFinalized(lastBid.from, lastBid.bidPrice, myAuction);
@@ -255,21 +186,14 @@ contract HexToysSingleAuction is
      */
     function bidOnAuction(uint256 _auctionId, uint256 amount) external {
         // owner can't bid on their auctions
-        require(
-            _auctionId <= auctions.length &&
-                auctions[_auctionId].auctionId == _auctionId,
-            "Could not find item"
-        );
+        require( _auctionId <= auctions.length && auctions[_auctionId].auctionId == _auctionId, "Could not find item" );
         Auction memory myAuction = auctions[_auctionId];
         require(myAuction.owner != msg.sender, "owner can not bid");
         require(myAuction.active, "not exist");
 
         // if auction is expired
         require(block.timestamp < myAuction.endTime, "auction is over");
-        require(
-            block.timestamp >= myAuction.startTime,
-            "auction is not started"
-        );
+        require( block.timestamp >= myAuction.startTime, "auction is not started" );
 
         uint256 bidsLength = auctionBids[_auctionId].length;
         uint256 tempAmount = myAuction.startPrice;
@@ -278,40 +202,25 @@ contract HexToysSingleAuction is
         // there are previous bids
         if (bidsLength > 0) {
             lastBid = auctionBids[_auctionId][bidsLength - 1];
-            tempAmount = lastBid
-                .bidPrice
-                .mul(PERCENTS_DIVIDER + MIN_BID_INCREMENT_PERCENT)
-                .div(PERCENTS_DIVIDER);
+            tempAmount = lastBid.bidPrice.mul(PERCENTS_DIVIDER + MIN_BID_INCREMENT_PERCENT).div(PERCENTS_DIVIDER);
         }
 
         // check if amount is greater than previous amount
         require(amount >= tempAmount, "too small amount");
 
         IERC20 governanceToken = IERC20(myAuction.tokenAdr);
-        require(
-            governanceToken.allowance(msg.sender, address(this)) < amount,
-            "in sufficiant token allowance"
-        );
+        require( governanceToken.allowance(msg.sender, address(this)) < amount, "in sufficiant token allowance" );
         
         // insert bid
         AuctionBid memory newBid;
         newBid.from = msg.sender;
         newBid.bidPrice = amount;
         auctionBids[_auctionId].push(newBid);
-        emit AuctionBidSuccess(
-            msg.sender,
-            myAuction,
-            newBid.bidPrice,
-            bidsLength
-        );
+        emit AuctionBidSuccess( msg.sender, myAuction, newBid.bidPrice, bidsLength );
     }
 
     modifier AuctionExists(uint256 auctionId) {
-        require(
-            auctionId <= auctions.length &&
-                auctions[auctionId].auctionId == auctionId,
-            "Could not find item"
-        );
+        require( auctionId <= auctions.length && auctions[auctionId].auctionId == auctionId, "Could not find item" );
         _;
     }
 

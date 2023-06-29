@@ -12,6 +12,7 @@ async function main() {
   console.log('signer:', await signer.getAddress());
 
   const feeAddress = process.env.FEE_ADDRESS;  
+  const signerAddress = process.env.SIGNER_ADDRESS;
 
   /**
    *  Deploy and Verify HexToysSingleAuction
@@ -20,7 +21,7 @@ async function main() {
     const HexToysSingleAuction = await ethers.getContractFactory('HexToysSingleAuction', {
       signer: (await ethers.getSigners())[0]
     });
-    const singleAuction = await upgrades.deployProxy(HexToysSingleAuction, [feeAddress], { initializer: 'initialize' });
+    const singleAuction = await upgrades.deployProxy(HexToysSingleAuction, [feeAddress, signerAddress], { initializer: 'initialize' });
     await singleAuction.deployed()
 
     console.log('HexToysSingleAuction proxy deployed: ', singleAuction.address)
@@ -45,7 +46,7 @@ async function main() {
       const HexToysSingleFixed = await ethers.getContractFactory('HexToysSingleFixed', {
         signer: (await ethers.getSigners())[0]
       });
-      const singleFixed = await upgrades.deployProxy(HexToysSingleFixed, [feeAddress], { initializer: 'initialize' });
+      const singleFixed = await upgrades.deployProxy(HexToysSingleFixed, [feeAddress, signerAddress], { initializer: 'initialize' });
       await singleFixed.deployed()
   
       console.log('HexToysSingleFixed proxy deployed: ', singleFixed.address)
@@ -69,7 +70,7 @@ async function main() {
       const HexToysMultipleFixed = await ethers.getContractFactory('HexToysMultipleFixed', {
         signer: (await ethers.getSigners())[0]
       });
-      const multipleFixed = await upgrades.deployProxy(HexToysMultipleFixed, [feeAddress], { initializer: 'initialize' });
+      const multipleFixed = await upgrades.deployProxy(HexToysMultipleFixed, [feeAddress, signerAddress], { initializer: 'initialize' });
       await multipleFixed.deployed()
   
       console.log('HexToysMultipleFixed proxy deployed: ', multipleFixed.address)

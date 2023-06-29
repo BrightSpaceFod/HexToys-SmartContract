@@ -12,12 +12,12 @@ abstract contract Signature {
         address senderAddr,
         address collectionAddr,
         uint256 tokenId,
-        uint256 royalty,
-        address receiverAddr,
+        uint256[] memory _royaltyArray,
+        address[] memory _receiverArray,
         string memory funcName,
         bytes memory signature_,
         address signer
-    ) internal pure {        
+    ) internal pure {
         bytes32 hashMessage = getEthSignedMessageHash(
             keccak256(
                 abi.encodePacked(
@@ -25,8 +25,8 @@ abstract contract Signature {
                     senderAddr,
                     collectionAddr,
                     tokenId,
-                    royalty,
-                    receiverAddr,
+                    _royaltyArray,
+                    _receiverArray,
                     funcName                    
                 )
             )
