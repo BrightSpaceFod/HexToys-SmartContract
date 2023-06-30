@@ -17,27 +17,27 @@ async function main() {
   /**
    *  Deploy and Verify HexToysSingleNFTStakingFactory
    */
-  // {   
-  //   const HexToysSingleNFTStakingFactory = await ethers.getContractFactory('HexToysSingleNFTStakingFactory', {
-  //     signer: (await ethers.getSigners())[0]
-  //   });
-  //   const singleNFTStakingFactory = await upgrades.deployProxy(HexToysSingleNFTStakingFactory, [feeAddress], { initializer: 'initialize' });
-  //   await singleNFTStakingFactory.deployed()
+  {   
+    const HexToysSingleNFTStakingFactory = await ethers.getContractFactory('HexToysSingleNFTStakingFactory', {
+      signer: (await ethers.getSigners())[0]
+    });
+    const singleNFTStakingFactory = await upgrades.deployProxy(HexToysSingleNFTStakingFactory, [feeAddress], { initializer: 'initialize' });
+    await singleNFTStakingFactory.deployed()
 
-  //   console.log('HexToysSingleNFTStakingFactory proxy deployed: ', singleNFTStakingFactory.address)
+    console.log('HexToysSingleNFTStakingFactory proxy deployed: ', singleNFTStakingFactory.address)
     
-  //   await sleep(60);
-  //   // Verify HexToysSingleNFTStakingFactory
-  //   try {
-  //     await hre.run('verify:verify', {
-  //       address: singleNFTStakingFactory.address,
-  //       constructorArguments: []
-  //     })
-  //     console.log('HexToysSingleNFTStakingFactory verified')
-  //   } catch (error) {
-  //     console.log('HexToysSingleNFTStakingFactory verification failed : ', error)
-  //   }    
-  // }
+    await sleep(60);
+    // Verify HexToysSingleNFTStakingFactory
+    try {
+      await hre.run('verify:verify', {
+        address: singleNFTStakingFactory.address,
+        constructorArguments: []
+      })
+      console.log('HexToysSingleNFTStakingFactory verified')
+    } catch (error) {
+      console.log('HexToysSingleNFTStakingFactory verification failed : ', error)
+    }    
+  }
 
   /**
    *  Deploy and Verify HexToysMultiNFTStakingFactory

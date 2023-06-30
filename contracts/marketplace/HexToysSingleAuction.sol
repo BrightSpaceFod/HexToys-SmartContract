@@ -54,6 +54,9 @@ contract HexToysSingleAuction is OwnableUpgradeable, ERC721HolderUpgradeable, Si
     // Mapping from owner to a list of owned auctions
     mapping(address => uint256[]) public ownedAuctions;
 
+    // Mapping from (user, collection, tokenId) to bool (show listed status)
+    mapping(bytes32 => bool) public listedStatus;
+
     event AuctionBidSuccess( address _from, Auction auction, uint256 price, uint256 _bidIndex );
 
     // AuctionCreated is fired when an auction is created
@@ -98,6 +101,10 @@ contract HexToysSingleAuction is OwnableUpgradeable, ERC721HolderUpgradeable, Si
             "Not approve nft to singlefixed"
         );
 
+        bytes32 key = getKey(_msgSender(), _collectionId, _tokenId);
+        require( listedStatus[key] != true, "this user created auction already" );
+        
+
         uint256 auctionId = auctions.length;
         Auction memory newAuction;
         newAuction.auctionId = auctionId;
@@ -113,6 +120,8 @@ contract HexToysSingleAuction is OwnableUpgradeable, ERC721HolderUpgradeable, Si
         auctions.push(newAuction);
         ownedAuctions[msg.sender].push(auctionId);
 
+        listedStatus[key] = true;
+
         emit AuctionCreated(newAuction);
     }
 
@@ -123,7 +132,7 @@ contract HexToysSingleAuction is OwnableUpgradeable, ERC721HolderUpgradeable, Si
         Auction memory myAuction = auctions[_auctionId];
         uint256 bidsLength = auctionBids[_auctionId].length;
         require( msg.sender == myAuction.owner || msg.sender == owner(), "only auction owner can finalize" );
-
+        
         confirmSignature(
             address(this),
             msg.sender,
@@ -138,9 +147,8 @@ contract HexToysSingleAuction is OwnableUpgradeable, ERC721HolderUpgradeable, Si
 
         // if there are no bids cancel
         if (bidsLength == 0) {
-            IHexToysSingleNFT(myAuction.collectionId).safeTransferFrom( address(this), myAuction.owner, myAuction.tokenId);
-            auctions[_auctionId].active = false;
-            emit AuctionCanceled(auctions[_auctionId]);
+            auctions[_auctionId].active = false;            
+            emit AuctionCanceled(auctions[_auctionId]);            
         } else {
             // 2. the money goes to the auction owner
             AuctionBid memory lastBid = auctionBids[_auctionId][bidsLength - 1];
@@ -176,6 +184,8 @@ contract HexToysSingleAuction is OwnableUpgradeable, ERC721HolderUpgradeable, Si
 
             emit AuctionFinalized(lastBid.from, lastBid.bidPrice, myAuction);
         }
+        bytes32 key = getKey(myAuction.owner, myAuction.collectionId, myAuction.tokenId);       
+        listedStatus[key] = false;        
     }
 
     /**
@@ -275,6 +285,14 @@ contract HexToysSingleAuction is OwnableUpgradeable, ERC721HolderUpgradeable, Si
      */
     function getAuctionsAmount(address _owner) public view returns (uint) {
         return ownedAuctions[_owner].length;
+    }
+
+    function getKey(
+        address _user,
+        address _collection,
+        uint256 _token_id
+    ) public pure returns (bytes32) {
+        return keccak256(abi.encode(_user, _collection, _token_id));
     }
 
     modifier onlyAuctionOwner(uint256 _auctionId) {
