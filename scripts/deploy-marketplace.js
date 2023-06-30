@@ -42,51 +42,51 @@ async function main() {
     /**
    *  Deploy and Verify HexToysSingleFixed
    */
-    {   
-      const HexToysSingleFixed = await ethers.getContractFactory('HexToysSingleFixed', {
-        signer: (await ethers.getSigners())[0]
-      });
-      const singleFixed = await upgrades.deployProxy(HexToysSingleFixed, [feeAddress, signerAddress], { initializer: 'initialize' });
-      await singleFixed.deployed()
+    // {   
+    //   const HexToysSingleFixed = await ethers.getContractFactory('HexToysSingleFixed', {
+    //     signer: (await ethers.getSigners())[0]
+    //   });
+    //   const singleFixed = await upgrades.deployProxy(HexToysSingleFixed, [feeAddress, signerAddress], { initializer: 'initialize' });
+    //   await singleFixed.deployed()
   
-      console.log('HexToysSingleFixed proxy deployed: ', singleFixed.address)
+    //   console.log('HexToysSingleFixed proxy deployed: ', singleFixed.address)
       
-      await sleep(60);
-      // Verify HexToysSingleFixed
-      try {
-        await hre.run('verify:verify', {
-          address: singleFixed.address,
-          constructorArguments: []
-        })
-        console.log('HexToysSingleFixed verified')
-      } catch (error) {
-        console.log('HexToysSingleFixed verification failed : ', error)
-      }    
-    }
+    //   await sleep(60);
+    //   // Verify HexToysSingleFixed
+    //   try {
+    //     await hre.run('verify:verify', {
+    //       address: singleFixed.address,
+    //       constructorArguments: []
+    //     })
+    //     console.log('HexToysSingleFixed verified')
+    //   } catch (error) {
+    //     console.log('HexToysSingleFixed verification failed : ', error)
+    //   }    
+    // }
     /**
    *  Deploy and Verify HexToysMultipleFixed
    */
-    {   
-      const HexToysMultipleFixed = await ethers.getContractFactory('HexToysMultipleFixed', {
-        signer: (await ethers.getSigners())[0]
-      });
-      const multipleFixed = await upgrades.deployProxy(HexToysMultipleFixed, [feeAddress, signerAddress], { initializer: 'initialize' });
-      await multipleFixed.deployed()
+    // {   
+    //   const HexToysMultipleFixed = await ethers.getContractFactory('HexToysMultipleFixed', {
+    //     signer: (await ethers.getSigners())[0]
+    //   });
+    //   const multipleFixed = await upgrades.deployProxy(HexToysMultipleFixed, [feeAddress, signerAddress], { initializer: 'initialize' });
+    //   await multipleFixed.deployed()
   
-      console.log('HexToysMultipleFixed proxy deployed: ', multipleFixed.address)
+    //   console.log('HexToysMultipleFixed proxy deployed: ', multipleFixed.address)
       
-      await sleep(60);
-      // Verify HexToysMultipleFixed
-      try {
-        await hre.run('verify:verify', {
-          address: multipleFixed.address,
-          constructorArguments: []
-        })
-        console.log('HexToysMultipleFixed verified')
-      } catch (error) {
-        console.log('HexToysMultipleFixed verification failed : ', error)
-      }    
-    }  
+    //   await sleep(60);
+    //   // Verify HexToysMultipleFixed
+    //   try {
+    //     await hre.run('verify:verify', {
+    //       address: multipleFixed.address,
+    //       constructorArguments: []
+    //     })
+    //     console.log('HexToysMultipleFixed verified')
+    //   } catch (error) {
+    //     console.log('HexToysMultipleFixed verification failed : ', error)
+    //   }    
+    // }  
 }
 
 main()

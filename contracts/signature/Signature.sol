@@ -8,26 +8,32 @@ abstract contract Signature {
     error InvalidSignatureLength();
 
     function confirmSignature(
-        address contractAddr,
-        address senderAddr,
-        address collectionAddr,
+        address collection,
         uint256 tokenId,
+        uint256 productId,
+        uint256 amount,
+        uint256 price,
+        address tokenAddr,
+        address buyer,
+        address seller,
         uint256[] memory _royaltyArray,
         address[] memory _receiverArray,
-        string memory funcName,
         bytes memory signature_,
         address signer
     ) internal pure {
         bytes32 hashMessage = getEthSignedMessageHash(
             keccak256(
                 abi.encodePacked(
-                    contractAddr,
-                    senderAddr,
-                    collectionAddr,
+                    collection,
                     tokenId,
+                    productId,
+                    amount,
+                    price,
+                    tokenAddr,
+                    buyer,
+                    seller,
                     _royaltyArray,
-                    _receiverArray,
-                    funcName                    
+                    _receiverArray                                      
                 )
             )
         );
