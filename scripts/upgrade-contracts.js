@@ -13,16 +13,16 @@ async function main() {
   
 
   /**
-   * Upgrade HexToysMultipleFixed
+   * Upgrade HexToysMarketV2
    */
-   const multipleFixedAddress = "0x3a12fbd965ca1b8358b6800a638ded2728b267d5";
+   const marketV2 = "0xc16d32ecf660290c9351a9c878d0d482235be233";
 
-   const HexToysMultipleFixedV2 = await ethers.getContractFactory('HexToysMultipleFixed', {
+   const HexToysMarketV2 = await ethers.getContractFactory('HexToysMarketV2', {
      signer: (await ethers.getSigners())[0]
    })
 
-   const upgradedFactoryContract = await upgrades.upgradeProxy(multipleFixedAddress, HexToysMultipleFixedV2);
-   console.log('HexToysMultipleFixed upgraded: ', upgradedFactoryContract.address)
+   const upgradedFactoryContract = await upgrades.upgradeProxy(marketV2, HexToysMarketV2);
+   console.log('HexToysMarketV2 upgraded: ', upgradedFactoryContract.address)
 
 }
 

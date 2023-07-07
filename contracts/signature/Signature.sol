@@ -25,17 +25,7 @@ abstract contract Signature {
         bytes memory signature_,
         address signer
     ) internal pure {
-        // combine royalty array as string
-        string memory _royaltyStr = "";
-        string memory _receiverStr = "";
-        for (uint256 index = 0; index < _royaltyArray.length; index++) {
-            _royaltyStr = string(
-                abi.encodePacked(_royaltyStr, _royaltyArray[index])
-            );
-            _receiverStr = string(
-                abi.encodePacked(_receiverStr, _receiverArray[index])
-            );
-        }
+        // combine royalty array as string        
 
         bytes32 hashMessage = keccak256(
             abi.encodePacked(
@@ -51,8 +41,8 @@ abstract contract Signature {
                         buyer,
                         seller,
                         nonce,
-                        _royaltyStr,
-                        _receiverStr
+                        _royaltyArray,
+                        _receiverArray
                     )
                 )
             )
