@@ -10,29 +10,29 @@ async function main() {
 
   const signer = (await ethers.getSigners())[0];
   console.log('signer:', await signer.getAddress());
-
+  
   /**
-   *  Deploy and Verify HexToysSubscription
+   *  Deploy and Verify HexToysAddNFTCollection
    */
   {   
-    const HexToysSubscription = await ethers.getContractFactory('HexToysSubscription', {
+    const HexToysAddNFTCollection = await ethers.getContractFactory('HexToysAddNFTCollection', {
       signer: (await ethers.getSigners())[0]
     });
-    const subscription = await upgrades.deployProxy(HexToysSubscription, [], { initializer: 'initialize' });
-    await subscription.deployed()
+    const addNFTCollection = await upgrades.deployProxy(HexToysAddNFTCollection, [], { initializer: 'initialize' });
+    await addNFTCollection.deployed()
 
-    console.log('HexToysSubscription proxy deployed: ', subscription.address)
+    console.log('HexToysAddNFTCollection proxy deployed: ', addNFTCollection.address)
     
     await sleep(60);
-    // Verify HexToysSubscription
+    // Verify HexToysAddNFTCollection
     try {
       await hre.run('verify:verify', {
-        address: subscription.address,
+        address: addNFTCollection.address,
         constructorArguments: []
       })
-      console.log('HexToysSubscription verified')
+      console.log('HexToysAddNFTCollection verified')
     } catch (error) {
-      console.log('HexToysSubscription verification failed : ', error)
+      console.log('HexToysAddNFTCollection verification failed : ', error)
     }    
   }
 }

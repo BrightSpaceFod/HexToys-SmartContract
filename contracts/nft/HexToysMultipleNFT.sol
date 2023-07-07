@@ -1,4 +1,4 @@
-// MultipleNFT token
+// HexToysMultipleNFT token
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-contract MultipleNFT is ERC1155, AccessControl {
+contract HexToysMultipleNFT is ERC1155, AccessControl {
     using SafeMath for uint256;
 
     struct Item {
@@ -33,7 +33,7 @@ contract MultipleNFT is ERC1155, AccessControl {
     event CollectionNameUpdated(string collection_name);
     event TokenUriUpdated(uint256 id, string uri);
 
-    constructor() ERC1155("MultipleNFT") {
+    constructor() ERC1155("HexToysMultipleNFT") {
         factory = msg.sender;
         initialisable = true;	
     }

@@ -12,27 +12,27 @@ async function main() {
   console.log('signer:', await signer.getAddress());
 
   /**
-   *  Deploy and Verify HexToysSubscription
+   *  Deploy and Verify HexToysNFTFactory
    */
   {   
-    const HexToysSubscription = await ethers.getContractFactory('HexToysSubscription', {
+    const HexToysNFTFactory = await ethers.getContractFactory('HexToysNFTFactory', {
       signer: (await ethers.getSigners())[0]
     });
-    const subscription = await upgrades.deployProxy(HexToysSubscription, [], { initializer: 'initialize' });
-    await subscription.deployed()
+    const nftFactory = await upgrades.deployProxy(HexToysNFTFactory, [], { initializer: 'initialize' });
+    await nftFactory.deployed()
 
-    console.log('HexToysSubscription proxy deployed: ', subscription.address)
+    console.log('HexToysNFTFactory proxy deployed: ', nftFactory.address)
     
     await sleep(60);
-    // Verify HexToysSubscription
+    // Verify HexToysNFTFactory
     try {
       await hre.run('verify:verify', {
-        address: subscription.address,
+        address: nftFactory.address,
         constructorArguments: []
       })
-      console.log('HexToysSubscription verified')
+      console.log('HexToysNFTFactory verified')
     } catch (error) {
-      console.log('HexToysSubscription verification failed : ', error)
+      console.log('HexToysNFTFactory verification failed : ', error)
     }    
   }
 }

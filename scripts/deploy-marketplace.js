@@ -11,28 +11,31 @@ async function main() {
   const signer = (await ethers.getSigners())[0];
   console.log('signer:', await signer.getAddress());
 
+  const feeAddress = process.env.FEE_ADDRESS;  
+  const signerAddress = process.env.SIGNER_ADDRESS;
+
   /**
-   *  Deploy and Verify HexToysSubscription
+   *  Deploy and Verify HexToysMarketV2
    */
   {   
-    const HexToysSubscription = await ethers.getContractFactory('HexToysSubscription', {
+    const HexToysMarketV2 = await ethers.getContractFactory('HexToysMarketV2', {
       signer: (await ethers.getSigners())[0]
     });
-    const subscription = await upgrades.deployProxy(HexToysSubscription, [], { initializer: 'initialize' });
-    await subscription.deployed()
+    const marketV2 = await upgrades.deployProxy(HexToysMarketV2, [feeAddress, signerAddress], { initializer: 'initialize' });
+    await marketV2.deployed()
 
-    console.log('HexToysSubscription proxy deployed: ', subscription.address)
+    console.log('HexToysMarketV2 proxy deployed: ', marketV2.address)
     
     await sleep(60);
-    // Verify HexToysSubscription
+    // Verify HexToysMarketV2
     try {
       await hre.run('verify:verify', {
-        address: subscription.address,
+        address: marketV2.address,
         constructorArguments: []
       })
-      console.log('HexToysSubscription verified')
+      console.log('HexToysMarketV2 verified')
     } catch (error) {
-      console.log('HexToysSubscription verification failed : ', error)
+      console.log('HexToysMarketV2 verification failed : ', error)
     }    
   }
 }

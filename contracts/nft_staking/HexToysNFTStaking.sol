@@ -12,7 +12,7 @@ interface INFTStakingFactory {
     function getAdminFeeAddress() external view returns (address);
 }
 
-contract NFTStaking is ReentrancyGuard, Pausable {
+contract HexToysNFTStaking is ReentrancyGuard, Pausable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 

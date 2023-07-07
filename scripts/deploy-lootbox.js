@@ -10,31 +10,32 @@ async function main() {
 
   const signer = (await ethers.getSigners())[0];
   console.log('signer:', await signer.getAddress());
-
+  
   /**
-   *  Deploy and Verify HexToysSubscription
+   *  Deploy and Verify HexToysLootBoxFactory
    */
   {   
-    const HexToysSubscription = await ethers.getContractFactory('HexToysSubscription', {
+    const HexToysLootBoxFactory = await ethers.getContractFactory('HexToysLootBoxFactory', {
       signer: (await ethers.getSigners())[0]
     });
-    const subscription = await upgrades.deployProxy(HexToysSubscription, [], { initializer: 'initialize' });
-    await subscription.deployed()
+    const lootBoxFactory = await upgrades.deployProxy(HexToysLootBoxFactory, [], { initializer: 'initialize' });
+    await lootBoxFactory.deployed()
 
-    console.log('HexToysSubscription proxy deployed: ', subscription.address)
+    console.log('HexToysLootBoxFactory proxy deployed: ', lootBoxFactory.address)
     
     await sleep(60);
-    // Verify HexToysSubscription
+    // Verify HexToysLootBoxFactory
     try {
       await hre.run('verify:verify', {
-        address: subscription.address,
+        address: lootBoxFactory.address,
         constructorArguments: []
       })
-      console.log('HexToysSubscription verified')
+      console.log('HexToysLootBoxFactory verified')
     } catch (error) {
-      console.log('HexToysSubscription verification failed : ', error)
+      console.log('HexToysLootBoxFactory verification failed : ', error)
     }    
   }
+
 }
 
 main()

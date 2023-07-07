@@ -3,17 +3,17 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "./MultiNFTStaking.sol";
+import "./HexToysSingleNFTStaking.sol";
 
 interface INFTStaking {
     function initialize(InitializeParam memory param) external;
 }
 
-contract MultiNFTStakingFactory is Ownable {
+contract HexToysSingleNFTStakingFactory is OwnableUpgradeable {
     using SafeMath for uint256;
     using EnumerableSet for EnumerableSet.UintSet;
 
@@ -22,7 +22,7 @@ contract MultiNFTStakingFactory is Ownable {
 
     address[] public stakings;
     address private adminFeeAddress;
-    uint256 private adminFeePercent; // 20 for 2 %
+    uint256 private adminFeePercent; // 21 for 2.1 %
     uint256 private depositFeePerNft;
     uint256 private withdrawFeePerNft;
 
@@ -48,17 +48,18 @@ contract MultiNFTStakingFactory is Ownable {
         Subscription subscription
     );
 
-    event MultiNFTStakingCreated(
+    event SingleNFTStakingCreated(
         address _stake_address,
         InitializeParam _param
-    );
+    );    
 
-    constructor (address _adminFeeAddress) {
-        adminFeeAddress = _adminFeeAddress;
+    function initialize(address _adminFeeAddress) public initializer {
+        __Ownable_init();
+        adminFeeAddress = _adminFeeAddress;        
 
-        adminFeePercent = 20;
-        depositFeePerNft = 0 ether;
-        withdrawFeePerNft = 0 ether;
+        adminFeePercent = 21;
+        depositFeePerNft = 100 ether;
+        withdrawFeePerNft = 100 ether;
         currentSubscriptionsId = 0;
     }
 
@@ -205,7 +206,7 @@ contract MultiNFTStakingFactory is Ownable {
         }
     }
 
-    function createMultiNFTStaking(
+    function createSingleNFTStaking(
         uint256 startTime,
         uint256 subscriptionId,
         uint256 aprIndex,
@@ -219,20 +220,19 @@ contract MultiNFTStakingFactory is Ownable {
 
         Subscription storage _subscription = _subscriptions[subscriptionId];
         uint256 _apr = _aprs.at(aprIndex);
-        uint256 endTime = startTime.add(_subscription.period);
-        uint256 value = msg.value;
+        uint256 endTime = startTime.add(_subscription.period);       
 
         {
             (bool result, ) = payable(adminFeeAddress).call{value: _subscription.price}("");
-        	require(result, "Failed to send subscription fee to admin");            
+            require(result, "Failed to transfer fee to adminFeeAddress");           
         }
 
         {
-            bytes memory bytecode = type(MultiNFTStaking).creationCode;
+            bytes memory bytecode = type(HexToysSingleNFTStaking).creationCode;
             bytes32 salt = keccak256(abi.encodePacked(stakeNftAddress, rewardTokenAddress, block.timestamp));
             assembly {
                 staking := create2(0, add(bytecode, 32), mload(bytecode), salt)
-            }                       
+            }            
         }
 
         {
@@ -242,14 +242,9 @@ contract MultiNFTStakingFactory is Ownable {
                 _apr,
                 _subscription.period
             );
-            if (rewardTokenAddress == address(0x0)) {
-                require(
-                    value >= _subscription.price.add(depositTokenAmount),
-                    "insufficient balance"
-                );                
+            if (rewardTokenAddress == address(0x0)) {                
                 (bool result, ) = payable(staking).call{value: depositTokenAmount}("");
-        	    require(result, "Failed to send deposit Amount fee to staking");
-
+                require(result, "Failed to transfer deposit coin to staking");
             } else {
                 IERC20 governanceToken = IERC20(rewardTokenAddress);
                 require(
@@ -281,7 +276,7 @@ contract MultiNFTStakingFactory is Ownable {
             INFTStaking(staking).initialize(_initializeParam);
             stakings.push(staking);
 
-            emit MultiNFTStakingCreated(staking, _initializeParam);
+            emit SingleNFTStakingCreated(staking, _initializeParam);
         }
     }
 
@@ -304,7 +299,7 @@ contract MultiNFTStakingFactory is Ownable {
         uint256 balance = address(this).balance;
         require(balance > 0, "insufficient balance");
         (bool result, ) = payable(msg.sender).call{value: balance}("");
-        require(result, "Failed to withdraw balance");        
+        require(result, "Failed to withdraw balance");
     }
 
     /**

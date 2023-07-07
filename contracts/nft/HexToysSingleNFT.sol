@@ -1,11 +1,11 @@
-// SingleNFT token
+// HexToysSingleNFT token
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-contract SingleNFT is ERC721 {
+contract HexToysSingleNFT is ERC721 {
     using SafeMath for uint256;    
 
 	bool private initialisable;
@@ -30,7 +30,7 @@ contract SingleNFT is ERC721 {
     event ItemCreated(uint256 id, address creator, string uri);
     event Burned(address owner, uint nftID);
 
-    constructor() ERC721("SingleNFT","ST") {
+    constructor() ERC721("HexToysSingleNFT","HTS") {
         factory = msg.sender;
         initialisable = true;	
     }
