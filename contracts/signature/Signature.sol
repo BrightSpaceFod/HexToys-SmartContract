@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
+import "@openzeppelin/contracts/utils/Strings.sol";
+
 abstract contract Signature {
+    using Strings for uint256;
 
     error InvalidSignature();
     error InvalidSignatureLength();
@@ -16,41 +19,46 @@ abstract contract Signature {
         address tokenAddr,
         address buyer,
         address seller,
+        uint256 nonce,
         uint256[] memory _royaltyArray,
         address[] memory _receiverArray,
         bytes memory signature_,
         address signer
     ) internal pure {
-        bytes32 hashMessage = getEthSignedMessageHash(
-            keccak256(
-                abi.encodePacked(
-                    collection,
-                    tokenId,
-                    productId,
-                    amount,
-                    price,
-                    tokenAddr,
-                    buyer,
-                    seller,
-                    _royaltyArray,
-                    _receiverArray                                      
+        // combine royalty array as string
+        string memory _royaltyStr = "";
+        string memory _receiverStr = "";
+        for (uint256 index = 0; index < _royaltyArray.length; index++) {
+            _royaltyStr = string(
+                abi.encodePacked(_royaltyStr, _royaltyArray[index])
+            );
+            _receiverStr = string(
+                abi.encodePacked(_receiverStr, _receiverArray[index])
+            );
+        }
+
+        bytes32 hashMessage = keccak256(
+            abi.encodePacked(
+                "\x19Ethereum Signed Message:\n32",
+                keccak256(
+                    abi.encodePacked(
+                        collection,
+                        tokenId,
+                        productId,
+                        amount,
+                        price,
+                        tokenAddr,
+                        buyer,
+                        seller,
+                        nonce,
+                        _royaltyStr,
+                        _receiverStr
+                    )
                 )
             )
         );
         if (recoverSigner(hashMessage, signature_) != signer)
             revert InvalidSignature();
-    }
-
-    function getEthSignedMessageHash(
-        bytes32 messageHash_
-    ) private pure returns (bytes32) {
-        return
-            keccak256(
-                abi.encodePacked(
-                    "\x19Ethereum Signed Message:\n32",
-                    messageHash_
-                )
-            );
     }
 
     function recoverSigner(
@@ -72,5 +80,4 @@ abstract contract Signature {
             v := byte(0, mload(add(sig_, 96)))
         }
     }
-
 }

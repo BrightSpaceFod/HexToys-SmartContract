@@ -24,6 +24,8 @@ interface IPRC721 {
 contract HexToysMarketV2 is OwnableUpgradeable, ERC1155HolderUpgradeable, Signature {
     using SafeMath for uint256;
 
+    mapping (address => uint256) public nonce;
+
     struct TrxEvent {
         address buyer;
         address seller;
@@ -88,6 +90,7 @@ contract HexToysMarketV2 is OwnableUpgradeable, ERC1155HolderUpgradeable, Signat
             tokenAddr,
             msg.sender,
             seller,
+            nonce[msg.sender],
             _royaltyArray,
             _receiverArray,
             _signature,
@@ -147,38 +150,42 @@ contract HexToysMarketV2 is OwnableUpgradeable, ERC1155HolderUpgradeable, Signat
                 require(governanceToken.transfer(seller, ownerAmount));
             }
         }
+        {
+            if (nftType == 0) {
+                // PRC721 transfer
+                IPRC721 nft = IPRC721(collection);
+                require(nft.isApprovedForAll(seller, address(this)), "Not approve nft to staker address"); 
 
-        if (nftType == 0) {
-            // PRC721 transfer
-            IPRC721 nft = IPRC721(collection);
-            require(nft.isApprovedForAll(seller, address(this)), "Not approve nft to staker address"); 
+                require(nft.ownerOf(tokenId) == seller, "seller don't own nft");
 
-            require(nft.ownerOf(tokenId) == seller, "seller don't own nft");
+                nft.safeTransferFrom( seller, msg.sender, tokenId);             
+            } else {
+                // PRC1155 transfer
+                IPRC1155 nft = IPRC1155(collection);
+                require(nft.isApprovedForAll(seller, address(this)), "Not approve nft to staker address");
 
-            nft.safeTransferFrom( seller, msg.sender, tokenId);             
-        } else {
-            // PRC1155 transfer
-            IPRC1155 nft = IPRC1155(collection);
-            require(nft.isApprovedForAll(seller, address(this)), "Not approve nft to staker address");
+                uint256 nft_token_balance = nft.balanceOf(seller, tokenId);
+                require(nft_token_balance >= tokenId, "seller don't own enough balance");
 
-            uint256 nft_token_balance = nft.balanceOf(seller, tokenId);
-            require(nft_token_balance >= tokenId, "seller don't own enough balance");
-
-            nft.safeTransferFrom(seller, msg.sender, tokenId, amount, "");
+                nft.safeTransferFrom(seller, msg.sender, tokenId, amount, "");
+            }
         }
+        {
+            nonce[msg.sender] = nonce[msg.sender].add(1);
 
-        TrxEvent memory soldEvent;
-        soldEvent.buyer = msg.sender;
-        soldEvent.seller = seller;
-        soldEvent.productType = "pair";
-        soldEvent.productId = productId;
-        soldEvent.tokenId = tokenId;
-        soldEvent.collection = collection;
-        soldEvent.amount = amount;
-        soldEvent.price = price;
-        soldEvent.tokenAddr = tokenAddr;
+            TrxEvent memory soldEvent;
+            soldEvent.buyer = msg.sender;
+            soldEvent.seller = seller;
+            soldEvent.productType = "pair";
+            soldEvent.productId = productId;
+            soldEvent.tokenId = tokenId;
+            soldEvent.collection = collection;
+            soldEvent.amount = amount;
+            soldEvent.price = price;
+            soldEvent.tokenAddr = tokenAddr;
 
-        emit Sold(soldEvent);           
+            emit Sold(soldEvent);    
+        }       
     }
 
     function finalizeAuction(address collection,
@@ -203,6 +210,7 @@ contract HexToysMarketV2 is OwnableUpgradeable, ERC1155HolderUpgradeable, Signat
             tokenAddr,
             bidder,
             seller,
+            nonce[msg.sender],
             _royaltyArray,
             _receiverArray,
             _signature,
@@ -247,6 +255,7 @@ contract HexToysMarketV2 is OwnableUpgradeable, ERC1155HolderUpgradeable, Signat
 
         nft.safeTransferFrom( seller, bidder, tokenId);
 
+        nonce[msg.sender] = nonce[msg.sender].add(1);
         TrxEvent memory soldEvent;
         soldEvent.buyer = bidder;
         soldEvent.seller = seller;
