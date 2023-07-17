@@ -165,7 +165,7 @@ contract HexToysMarketV2 is OwnableUpgradeable, ERC1155HolderUpgradeable, Signat
                 require(nft.isApprovedForAll(seller, address(this)), "Not approve nft to staker address");
 
                 uint256 nft_token_balance = nft.balanceOf(seller, tokenId);
-                require(nft_token_balance >= tokenId, "seller don't own enough balance");
+                require(nft_token_balance >= amount, "seller don't own enough balance");
 
                 nft.safeTransferFrom(seller, msg.sender, tokenId, amount, "");
             }

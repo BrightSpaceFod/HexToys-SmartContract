@@ -144,11 +144,11 @@ contract HexToysMultipleNFT is ERC1155, AccessControl {
     }
 
 
-    function burn(address from, uint256 id, uint256 amount) public returns(bool){
+    function burn(uint256 id, uint256 amount) public returns(bool){
 		uint256 nft_token_balance = balanceOf(msg.sender, id);
 		require(nft_token_balance > 0, "Only owner can burn");
         require(nft_token_balance >= amount, "invalid amount : amount have to be smaller than the balance");		
-		_burn(from, id, amount);
+		_burn(msg.sender, id, amount);
         Items[id].supply = Items[id].supply - amount;
 		return true;
 	}
