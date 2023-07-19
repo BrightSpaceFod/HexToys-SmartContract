@@ -12,6 +12,7 @@
     "deploy-lootbox": "hardhat run scripts/deploy-lootbox.js --network pls",
     "deploy-staking": "hardhat run scripts/deploy-staking.js --network pls",
     "deploy-subscribe": "hardhat run scripts/deploy-subscribe.js --network pls",
+    "deploy-hextoys": "hardhat run scripts/deploy-hextoysnft.js --network pls",
     "initialize-staking": "hardhat run scripts/initialize-staking.js --network pls",
     "verify-contract": "hardhat run scripts/verify-contract.js --network pls",
     "upgrade-contracts": "hardhat run scripts/upgrade-contracts.js --network pls",
