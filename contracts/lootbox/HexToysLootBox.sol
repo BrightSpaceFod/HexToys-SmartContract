@@ -279,7 +279,7 @@ contract HexToysLootBox is ERC1155Holder, ERC721Holder {
                 msg.sender,
                 _cards[cardKey].tokenId
             );
-        } else if (_cards[cardKey].cardType == 1) {
+        } else {
             // ERC1155
             IERC1155(_cards[cardKey].collectionId).safeTransferFrom(
                 address(this),
