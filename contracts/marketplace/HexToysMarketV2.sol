@@ -50,7 +50,7 @@ contract HexToysMarketV2 is OwnableUpgradeable, ERC1155HolderUpgradeable, Signat
         require(_feeAddress != address(0), "Invalid commonOwner");
         feeAddress = _feeAddress;
         signerAddress = _signerAddress;
-        swapFee = 21; // 21% 
+        swapFee = 21; // 2.1% 
     }
 
     function setSignerAddress(address _signerAddress) external onlyOwner {
