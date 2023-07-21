@@ -12,7 +12,7 @@ contract HexToysSingleNFT is ERC721 {
     string public collection_name;
     string private collection_uri;
     bool public isPublic;
-    address public factory;
+    address public immutable factory;
     address public owner;
 
     struct Item {

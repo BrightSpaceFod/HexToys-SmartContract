@@ -21,7 +21,7 @@ contract HexToysMultipleNFT is ERC1155, AccessControl {
     bool private initialisable;
     string public name;
     bool public isPublic;
-    address public factory;
+    address public immutable factory;
     address public owner;
     uint256 public currentID;
     mapping (uint256 => Item) public Items;

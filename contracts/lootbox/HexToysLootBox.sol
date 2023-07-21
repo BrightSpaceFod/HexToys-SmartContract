@@ -30,7 +30,7 @@ contract HexToysLootBox is ERC1155Holder, ERC721Holder {
         uint256 amount; // added nft token balances
     }
 
-    address public factory;
+    address public immutable factory;
     address public owner;
 
     address public tokenAddress;
