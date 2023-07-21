@@ -188,6 +188,10 @@ contract HexToysLootBox is ERC1155Holder, ERC721Holder {
     ) public onlyOwner {
         uint256 countToAdd = tokenIds.length;
         for (uint256 i = 0; i < countToAdd; i++) {
+            require(
+                cardTypes[i] == 0 || cardTypes[i] == 1,
+                "invalid cardType"
+            );
             if (cardTypes[i] == 0) {
                 IERC721(collections[i]).safeTransferFrom(
                     msg.sender,
