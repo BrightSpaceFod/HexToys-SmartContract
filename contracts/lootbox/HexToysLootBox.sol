@@ -152,7 +152,7 @@ contract HexToysLootBox is ERC1155Holder, ERC721Holder {
                 address(this),
                 tokenId
             );
-        } else if (cardType == 1) {
+        } else {
             require(
                 IERC1155(collection).balanceOf(msg.sender, tokenId) >= amount,
                 "You don't have enough Tokens"
@@ -198,7 +198,7 @@ contract HexToysLootBox is ERC1155Holder, ERC721Holder {
                     address(this),
                     tokenIds[i]
                 );
-            } else if (cardTypes[i] == 1) {
+            } else {
                 IERC1155(collections[i]).safeTransferFrom(
                     msg.sender,
                     address(this),
@@ -332,7 +332,7 @@ contract HexToysLootBox is ERC1155Holder, ERC721Holder {
                 msg.sender,
                 card.tokenId
             );
-        } else if (card.cardType == 1) {
+        } else {
             // withdraw multiple card
             IERC1155(card.collectionId).safeTransferFrom(
                 address(this),
@@ -364,7 +364,7 @@ contract HexToysLootBox is ERC1155Holder, ERC721Holder {
                         msg.sender,
                         card.tokenId
                     );
-                } else if (card.cardType == 1) {
+                } else {
                     // withdraw multiple card
                     IERC1155(card.collectionId).safeTransferFrom(
                         address(this),
