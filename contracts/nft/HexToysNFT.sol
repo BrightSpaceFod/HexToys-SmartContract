@@ -36,6 +36,12 @@ contract HexToysNFT is Initializable, ERC1155SupplyUpgradeable, AccessControlUpg
     mapping (uint256 => string) public tokenURI;
 
     event TokenUriUpdated(uint256 id, string uri);
+    
+    // Token name
+    string public name;
+
+    // Token symbol
+    string public symbol;
 
     function initialize(address recvAddr) public initializer {
         __ERC1155_init("HEX TOYS");
@@ -58,6 +64,11 @@ contract HexToysNFT is Initializable, ERC1155SupplyUpgradeable, AccessControlUpg
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155Upgradeable, AccessControlUpgradeable) returns (bool)
     {
         return super.supportsInterface(interfaceId);
+    }
+
+    function setNameAndSymbol(string memory _name, string memory _symbol) public onlyOwner {
+        name = _name;
+        symbol = _symbol;
     }
 
     function contractURI() public view returns (string memory) {
