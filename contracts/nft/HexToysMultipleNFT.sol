@@ -20,6 +20,7 @@ contract HexToysMultipleNFT is ERC1155, AccessControl {
     
     bool private initialisable;
     string public name;
+    string public symbol;
     bool public isPublic;
     address public immutable factory;
     address public owner;
@@ -48,6 +49,7 @@ contract HexToysMultipleNFT is ERC1155, AccessControl {
         
         _setURI(_uri);
         name = _name;
+        symbol = _name;
         owner = creator;
         isPublic = bPublic;
 
